@@ -200,7 +200,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				INFOPLIST_FILE = LoopbackFS/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_BUNDLE_IDENTIFIER = "io.macfuse.demo.loopbackfs-objc";
 				PRODUCT_NAME = LoopbackFS;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -223,7 +223,7 @@
 				FRAMEWORK_SEARCH_PATHS = /Library/Frameworks;
 				INFOPLIST_FILE = LoopbackFS/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_BUNDLE_IDENTIFIER = "io.macfuse.demo.loopbackfs-objc";
 				PRODUCT_NAME = LoopbackFS;
 				PROVISIONING_PROFILE_SPECIFIER = "";

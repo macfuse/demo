@@ -248,7 +248,7 @@
 				HEADER_SEARCH_PATHS = "\"/usr/local/include\"";
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/";
 				LIBRARY_SEARCH_PATHS = "\"/usr/local/lib\"";
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_CODE_SIGN_FLAGS = "--timestamp";
 				PRODUCT_BUNDLE_IDENTIFIER = "io.macfuse.demo.loopbackfs-c";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -273,7 +273,7 @@
 				HEADER_SEARCH_PATHS = "\"/usr/local/include\"";
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/";
 				LIBRARY_SEARCH_PATHS = "\"/usr/local/lib\"";
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_CODE_SIGN_FLAGS = "--timestamp";
 				PRODUCT_BUNDLE_IDENTIFIER = "io.macfuse.demo.loopbackfs-c";
 				PRODUCT_NAME = "$(TARGET_NAME)";

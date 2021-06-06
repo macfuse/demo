@@ -316,7 +316,7 @@ final class LoopbackFS: NSObject {
             // Retrieve attribute:
             let count = data.count
             let result = data.withUnsafeMutableBytes {
-                getxattr(fileSystemPath, name,  $0.baseAddress?.assumingMemoryBound(to: Int8.self), count, UInt32(position), XATTR_NOFOLLOW)
+                getxattr(fileSystemPath, name, $0.baseAddress?.assumingMemoryBound(to: Int8.self), count, UInt32(position), XATTR_NOFOLLOW)
             }
             guard result >= 0 else {
                 throw NSError(posixErrorCode: errno)
