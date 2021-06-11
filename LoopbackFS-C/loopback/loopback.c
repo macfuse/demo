@@ -162,7 +162,8 @@ loopback_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
         d->entry = NULL;
         d->offset = 0;
     } else if (offset != d->offset) {
-        seekdir(d->dp, offset);
+        // Subtract the one that we add when calling telldir() below
+        seekdir(d->dp, offset - 1);
         d->entry = NULL;
         d->offset = offset;
     }
@@ -181,7 +182,14 @@ loopback_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
         memset(&st, 0, sizeof(st));
         st.st_ino = d->entry->d_ino;
         st.st_mode = d->entry->d_type << 12;
-        nextoff = telldir(d->dp);
+        
+        /*
+         * Under macOS, telldir() may return 0 the first time it is called.
+         * But for libfuse, an offset of zero means that offsets are not
+         * supported, so we shift everything by one.
+         */
+        nextoff = telldir(d->dp) + 1;
+        
         if (filler(buf, d->entry->d_name, &st, nextoff)) {
             break;
         }
