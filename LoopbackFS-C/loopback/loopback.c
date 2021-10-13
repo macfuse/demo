@@ -22,20 +22,21 @@
 
 #define _GNU_SOURCE
 
+#include <dirent.h>
+#include <errno.h>
+#include <fcntl.h>
 #include <fuse.h>
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <dirent.h>
-#include <errno.h>
-#include <sys/time.h>
-#include <sys/xattr.h>
 #include <sys/attr.h>
+#include <sys/mount.h>
 #include <sys/param.h>
+#include <sys/time.h>
 #include <sys/vnode.h>
+#include <sys/xattr.h>
+#include <unistd.h>
 
 #if defined(_POSIX_C_SOURCE)
 typedef unsigned char  u_char;
@@ -670,19 +671,6 @@ loopback_write(const char *path, const char *buf, size_t size,
 }
 
 static int
-loopback_statfs(const char *path, struct statvfs *stbuf)
-{
-    int res;
-    
-    res = statvfs(path, stbuf);
-    if (res == -1) {
-        return -errno;
-    }
-    
-    return 0;
-}
-
-static int
 loopback_flush(const char *path, struct fuse_file_info *fi)
 {
     int res;
@@ -881,6 +869,19 @@ loopback_setvolname(const char *name)
     return 0;
 }
 
+static int
+loopback_statfs_x(const char *path, struct statfs *stbuf)
+{
+    int res;
+    
+    res = statfs(path, stbuf);
+    if (res == -1) {
+        return -errno;
+    }
+    
+    return 0;
+}
+
 #if HAVE_RENAMEX
 
 static int
@@ -924,7 +925,7 @@ static struct fuse_operations loopback_oper = {
     .destroy     = loopback_destroy,
     .getattr     = loopback_getattr,
     .fgetattr    = loopback_fgetattr,
-    /*  .access      = loopback_access, */
+/*  .access      = loopback_access, */
     .readlink    = loopback_readlink,
     .opendir     = loopback_opendir,
     .readdir     = loopback_readdir,
@@ -940,7 +941,6 @@ static struct fuse_operations loopback_oper = {
     .open        = loopback_open,
     .read        = loopback_read,
     .write       = loopback_write,
-    .statfs      = loopback_statfs,
     .flush       = loopback_flush,
     .release     = loopback_release,
     .fsync       = loopback_fsync,
@@ -956,6 +956,7 @@ static struct fuse_operations loopback_oper = {
     .fsetattr_x  = loopback_fsetattr_x,
     .fallocate   = loopback_fallocate,
     .setvolname  = loopback_setvolname,
+    .statfs_x    = loopback_statfs_x,
 #if HAVE_RENAMEX
     .renamex     = loopback_renamex,
 #endif
