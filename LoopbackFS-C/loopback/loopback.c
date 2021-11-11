@@ -26,8 +26,9 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <fuse.h>
-#include <stdio.h>
+#include <stdbool.h>
 #include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/attr.h>
@@ -52,7 +53,8 @@ typedef unsigned long  u_long;
 #define XATTR_APPLE_PREFIX             "com.apple."
 
 struct loopback {
-    int case_insensitive;
+    uint32_t blocksize;
+    bool case_insensitive;
 };
 
 static struct loopback loopback;
@@ -879,6 +881,11 @@ loopback_statfs_x(const char *path, struct statfs *stbuf)
         return -errno;
     }
     
+    stbuf->f_blocks = stbuf->f_blocks * stbuf->f_bsize / loopback.blocksize;
+    stbuf->f_bavail = stbuf->f_bavail * stbuf->f_bsize / loopback.blocksize;
+    stbuf->f_bfree = stbuf->f_bfree * stbuf->f_bsize / loopback.blocksize;
+    stbuf->f_bsize = loopback.blocksize;
+
     return 0;
 }
 
@@ -902,15 +909,14 @@ loopback_renamex(const char *path1, const char *path2, unsigned int flags)
 void *
 loopback_init(struct fuse_conn_info *conn)
 {
-    FUSE_ENABLE_SETVOLNAME(conn);
-    FUSE_ENABLE_XTIMES(conn);
-    
+    conn->want |= FUSE_CAP_VOL_RENAME | FUSE_CAP_XTIMES;
+
 #ifdef FUSE_ENABLE_CASE_INSENSITIVE
     if (loopback.case_insensitive) {
-        FUSE_ENABLE_CASE_INSENSITIVE(conn);
+        conn->want |= FUSE_CAP_CASE_INSENSITIVE;
     }
 #endif
-    
+
     return NULL;
 }
 
@@ -966,7 +972,8 @@ static struct fuse_operations loopback_oper = {
 };
 
 static const struct fuse_opt loopback_opts[] = {
-    { "case_insensitive", offsetof(struct loopback, case_insensitive), 1 },
+    { "blocksize=%u", offsetof(struct loopback, blocksize), 0 },
+    { "case_insensitive", offsetof(struct loopback, case_insensitive), true },
     FUSE_OPT_END
 };
 
@@ -976,6 +983,7 @@ main(int argc, char *argv[])
     int res = 0;
     struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
     
+    loopback.blocksize = 4096;
     loopback.case_insensitive = 0;
     if (fuse_opt_parse(&args, &loopback, loopback_opts, NULL) == -1) {
         exit(1);
