@@ -338,6 +338,9 @@
     [attribs setObject:[NSNumber numberWithBool:YES]
                 forKey:kGMUserFileSystemVolumeSupportsSetVolumeNameKey];
 
+    [attribs setObject:[NSNumber numberWithBool:YES]
+                forKey:kGMUserFileSystemVolumeSupportsReadWriteNodeLockingKey];
+
     return attribs;
   }
   return nil;

@@ -237,6 +237,8 @@ final class LoopbackFS: NSObject {
 
         attributes[FileAttributeKey(rawValue: kGMUserFileSystemVolumeSupportsSetVolumeNameKey)] = true
 
+        attributes[FileAttributeKey(rawValue: kGMUserFileSystemVolumeSupportsReadWriteNodeLockingKey)] = true
+
         return attributes
     }
 

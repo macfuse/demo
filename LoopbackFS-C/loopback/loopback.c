@@ -909,7 +909,7 @@ loopback_renamex(const char *path1, const char *path2, unsigned int flags)
 void *
 loopback_init(struct fuse_conn_info *conn)
 {
-    conn->want |= FUSE_CAP_VOL_RENAME | FUSE_CAP_XTIMES;
+    conn->want |= FUSE_CAP_VOL_RENAME | FUSE_CAP_XTIMES | FUSE_CAP_NODE_RWLOCK;
 
 #ifdef FUSE_ENABLE_CASE_INSENSITIVE
     if (loopback.case_insensitive) {
