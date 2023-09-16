@@ -4,7 +4,7 @@
 //
 //  Created by Gunnar Herzog on 27/01/2017.
 //  Copyright © 2017 KF Interactive GmbH. All rights reserved.
-//  Copyright © 2019-2020 Benjamin Fleischer. All rights reserved.
+//  Copyright © 2019-2023 Benjamin Fleischer. All rights reserved.
 //
 
 import Cocoa
@@ -32,7 +32,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         panel.directoryURL = URL(fileURLWithPath: "/tmp")
         let returnValue = panel.runModal()
 
-        guard returnValue.rawValue != NSFileHandlingPanelCancelButton, let rootPath = panel.urls.first?.path else { exit(0) }
+        guard returnValue != NSApplication.ModalResponse.cancel, let rootPath = panel.urls.first?.path else { exit(0) }
 
         addNotifications()
 
