@@ -758,6 +758,7 @@ loopback_setxattr(const char *path, const char *name, const char *value,
 {
     int res;
 
+    flags |= XATTR_NOFOLLOW;
     if (!strncmp(name, XATTR_APPLE_PREFIX, sizeof(XATTR_APPLE_PREFIX) - 1)) {
         flags &= ~(XATTR_NOSECURITY);
     }
@@ -769,10 +770,10 @@ loopback_setxattr(const char *path, const char *name, const char *value,
         memcpy(new_name, A_KAUTH_FILESEC_XATTR, sizeof(A_KAUTH_FILESEC_XATTR));
         memcpy(new_name, G_PREFIX, sizeof(G_PREFIX) - 1);
 
-        res = setxattr(path, new_name, value, size, position, XATTR_NOFOLLOW);
+        res = setxattr(path, new_name, value, size, position, flags);
 
     } else {
-        res = setxattr(path, name, value, size, position, XATTR_NOFOLLOW);
+        res = setxattr(path, name, value, size, position, flags);
     }
 
     if (res == -1) {
