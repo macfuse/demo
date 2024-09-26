@@ -47,11 +47,11 @@ typedef unsigned int   u_int;
 typedef unsigned long  u_long;
 #endif
 
-#define G_PREFIX                       "org"
+#define G_PREFIX              "org"
 #define G_KAUTH_FILESEC_XATTR G_PREFIX ".apple.system.Security"
-#define A_PREFIX                       "com"
+#define A_PREFIX              "com"
 #define A_KAUTH_FILESEC_XATTR A_PREFIX ".apple.system.Security"
-#define XATTR_APPLE_PREFIX             "com.apple."
+#define XATTR_APPLE_PREFIX    "com.apple."
 
 struct loopback {
     uint32_t blocksize;
