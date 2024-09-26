@@ -26,8 +26,8 @@
 #import "LoopbackFS.h"
 
 @interface AppDelegate : NSObject {
-  GMUserFileSystem* fs_;
-  LoopbackFS* loop_;
+  GMUserFileSystem *fs_;
+  LoopbackFS *loop_;
 }
 
 @end

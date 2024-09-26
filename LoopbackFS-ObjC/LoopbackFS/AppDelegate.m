@@ -34,12 +34,12 @@ static NSString *LoopbackMountPath = @"/Volumes/loop";
 - (void)mountFailed:(NSNotification *)notification {
   NSLog(@"Got mountFailed notification.");
 
-  NSDictionary* userInfo = [notification userInfo];
-  NSError* error = [userInfo objectForKey:kGMUserFileSystemErrorKey];
+  NSDictionary *userInfo = [notification userInfo];
+  NSError *error = [userInfo objectForKey:kGMUserFileSystemErrorKey];
   NSLog(@"kGMUserFileSystem Error: %@, userInfo=%@", error, [error userInfo]);
 
   dispatch_async(dispatch_get_main_queue(), ^{
-    NSAlert* alert = [[NSAlert alloc] init];
+    NSAlert *alert = [[NSAlert alloc] init];
     [alert setMessageText:@"Mount Failed"];
     [alert setInformativeText:[error localizedDescription] ?: @"Unknown error"];
     [alert runModal];
@@ -65,24 +65,24 @@ static NSString *LoopbackMountPath = @"/Volumes/loop";
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
-  NSOpenPanel* panel = [NSOpenPanel openPanel];
+  NSOpenPanel *panel = [NSOpenPanel openPanel];
   [panel setCanChooseFiles:NO];
   [panel setCanChooseDirectories:YES];
   [panel setAllowsMultipleSelection:NO];
   [panel setDirectoryURL:[NSURL fileURLWithPath:@"/tmp"]];
   NSModalResponse ret = [panel runModal];
 
-  if ( ret == NSModalResponseCancel ) {
+  if (ret == NSModalResponseCancel) {
     exit(0);
   }
-  NSArray* paths = [panel URLs];
-  if ( [paths count] != 1 ) {
+  NSArray *paths = [panel URLs];
+  if ([paths count] != 1) {
     exit(0);
   }
-  NSString* rootPath = nil;
+  NSString *rootPath = nil;
   rootPath = [[paths objectAtIndex:0] path];
 
-  NSNotificationCenter* center = [NSNotificationCenter defaultCenter];
+  NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
   [center addObserver:self selector:@selector(mountFailed:)
                  name:kGMUserFileSystemMountFailed object:nil];
   [center addObserver:self selector:@selector(didMount:)
@@ -94,7 +94,7 @@ static NSString *LoopbackMountPath = @"/Volumes/loop";
 
   fs_ = [[GMUserFileSystem alloc] initWithDelegate:loop_ isThreadSafe:NO];
 
-  NSMutableArray* options = [NSMutableArray array];
+  NSMutableArray *options = [NSMutableArray array];
 
   // Do not use the 'native_xattr' mount-time option unless the underlying
   // file system supports native extended attributes. Typically, the user

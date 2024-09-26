@@ -31,6 +31,7 @@
 
 #import <macFUSE/macFUSE.h>
 
+#import <sys/mount.h>
 #import <sys/stat.h>
 #import <sys/vnode.h>
 #import <sys/xattr.h>
@@ -61,8 +62,8 @@
                  error:(NSError **)error {
   // We use rename directly here since NSFileManager can sometimes fail to
   // rename and return non-posix error codes.
-  NSString* p_src = [rootPath_ stringByAppendingString:source];
-  NSString* p_dst = [rootPath_ stringByAppendingString:destination];
+  NSString *p_src = [rootPath_ stringByAppendingString:source];
+  NSString *p_dst = [rootPath_ stringByAppendingString:destination];
   int ret = 0;
   if (options == 0) {
     ret = rename([p_src UTF8String], [p_dst UTF8String]);
@@ -76,8 +77,8 @@
     }
     ret = renamex_np([p_src UTF8String], [p_dst UTF8String], flags);
   }
-  if ( ret < 0 ) {
-    if ( error ) {
+  if (ret < 0) {
+    if (error) {
       *error = [NSError errorWithPOSIXCode:errno];
     }
     return NO;
@@ -90,10 +91,10 @@
 - (BOOL)removeDirectoryAtPath:(NSString *)path error:(NSError **)error {
   // We need to special-case directories here and use the bsd API since
   // NSFileManager will happily do a recursive remove :-(
-  NSString* p = [rootPath_ stringByAppendingString:path];
+  NSString *p = [rootPath_ stringByAppendingString:path];
   int ret = rmdir([p UTF8String]);
   if (ret < 0) {
-    if ( error ) {
+    if (error) {
       *error = [NSError errorWithPOSIXCode:errno];
     }
     return NO;
@@ -105,7 +106,7 @@
   // NOTE: If removeDirectoryAtPath is commented out, then this may be called
   // with a directory, in which case NSFileManager will recursively remove all
   // subdirectories. So be careful!
-  NSString* p = [rootPath_ stringByAppendingString:path];
+  NSString *p = [rootPath_ stringByAppendingString:path];
   return [[NSFileManager defaultManager] removeItemAtPath:p error:error];
 }
 
@@ -114,7 +115,7 @@
 - (BOOL)createDirectoryAtPath:(NSString *)path
                    attributes:(NSDictionary *)attributes
                         error:(NSError **)error {
-  NSString* p = [rootPath_ stringByAppendingString:path];
+  NSString *p = [rootPath_ stringByAppendingString:path];
   return [[NSFileManager defaultManager] createDirectoryAtPath:p
                                    withIntermediateDirectories:NO
                                                     attributes:attributes
@@ -126,11 +127,11 @@
                    flags:(int)flags
                 userData:(id *)userData
                    error:(NSError **)error {
-  NSString* p = [rootPath_ stringByAppendingString:path];
+  NSString *p = [rootPath_ stringByAppendingString:path];
   mode_t mode = [[attributes objectForKey:NSFilePosixPermissions] longValue];
   int fd = open([p UTF8String], flags, mode);
-  if ( fd < 0 ) {
-    if ( error ) {
+  if (fd < 0) {
+    if (error) {
       *error = [NSError errorWithPOSIXCode:errno];
     }
     return NO;
@@ -144,14 +145,14 @@
 - (BOOL)linkItemAtPath:(NSString *)path
                 toPath:(NSString *)otherPath
                  error:(NSError **)error {
-  NSString* p_path = [rootPath_ stringByAppendingString:path];
-  NSString* p_otherPath = [rootPath_ stringByAppendingString:otherPath];
+  NSString *p_path = [rootPath_ stringByAppendingString:path];
+  NSString *p_otherPath = [rootPath_ stringByAppendingString:otherPath];
 
   // We use link rather than the NSFileManager equivalent because it will copy
   // the file rather than hard link if part of the root path is a symlink.
-  int rc = link([p_path UTF8String], [p_otherPath UTF8String]);
-  if ( rc <  0 ) {
-    if ( error ) {
+  int ret = link([p_path UTF8String], [p_otherPath UTF8String]);
+  if (ret <  0) {
+    if (error) {
       *error = [NSError errorWithPOSIXCode:errno];
     }
     return NO;
@@ -164,7 +165,7 @@
 - (BOOL)createSymbolicLinkAtPath:(NSString *)path
              withDestinationPath:(NSString *)otherPath
                            error:(NSError **)error {
-  NSString* p_src = [rootPath_ stringByAppendingString:path];
+  NSString *p_src = [rootPath_ stringByAppendingString:path];
   return [[NSFileManager defaultManager] createSymbolicLinkAtPath:p_src
                                               withDestinationPath:otherPath
                                                             error:error];
@@ -172,7 +173,7 @@
 
 - (NSString *)destinationOfSymbolicLinkAtPath:(NSString *)path
                                         error:(NSError **)error {
-  NSString* p = [rootPath_ stringByAppendingString:path];
+  NSString *p = [rootPath_ stringByAppendingString:path];
   return [[NSFileManager defaultManager] destinationOfSymbolicLinkAtPath:p
                                                                    error:error];
 }
@@ -183,10 +184,10 @@
                   mode:(int)mode
               userData:(id *)userData
                  error:(NSError **)error {
-  NSString* p = [rootPath_ stringByAppendingString:path];
+  NSString *p = [rootPath_ stringByAppendingString:path];
   int fd = open([p UTF8String], mode);
-  if ( fd < 0 ) {
-    if ( error ) {
+  if (fd < 0) {
+    if (error) {
       *error = [NSError errorWithPOSIXCode:errno];
     }
     return NO;
@@ -196,7 +197,7 @@
 }
 
 - (void)releaseFileAtPath:(NSString *)path userData:(id)userData {
-  NSNumber* num = (NSNumber *)userData;
+  NSNumber *num = (NSNumber *)userData;
   int fd = [num intValue];
   close(fd);
 }
@@ -207,11 +208,11 @@
                  size:(size_t)size
                offset:(off_t)offset
                 error:(NSError **)error {
-  NSNumber* num = (NSNumber *)userData;
+  NSNumber *num = (NSNumber *)userData;
   int fd = [num intValue];
   size_t ret = pread(fd, buffer, size, offset);
-  if ( ret < 0 ) {
-    if ( error ) {
+  if (ret < 0) {
+    if (error) {
       *error = [NSError errorWithPOSIXCode:errno];
     }
     return -1;
@@ -225,11 +226,11 @@
                   size:(size_t)size
                 offset:(off_t)offset
                  error:(NSError **)error {
-  NSNumber* num = (NSNumber *)userData;
+  NSNumber *num = (NSNumber *)userData;
   int fd = [num intValue];
   size_t ret = pwrite(fd, buffer, size, offset);
-  if ( ret < 0 ) {
-    if ( error ) {
+  if (ret < 0) {
+    if (error) {
       *error = [NSError errorWithPOSIXCode:errno];
     }
     return -1;
@@ -243,29 +244,29 @@
                        offset:(off_t)offset
                        length:(off_t)length
                         error:(NSError **)error {
-  NSNumber* num = (NSNumber *)userData;
+  NSNumber *num = (NSNumber *)userData;
   int fd = [num intValue];
 
   fstore_t fstore;
 
   fstore.fst_flags = 0;
-  if ( options & ALLOCATECONTIG ) {
+  if (options & ALLOCATECONTIG) {
     fstore.fst_flags |= F_ALLOCATECONTIG;
   }
-  if ( options & ALLOCATEALL ) {
+  if (options & ALLOCATEALL) {
     fstore.fst_flags |= F_ALLOCATEALL;
   }
 
-  if ( options & ALLOCATEFROMPEOF ) {
+  if (options & ALLOCATEFROMPEOF) {
     fstore.fst_posmode = F_PEOFPOSMODE;
-  } else if ( options & ALLOCATEFROMVOL ) {
+  } else if (options & ALLOCATEFROMVOL) {
     fstore.fst_posmode = F_VOLPOSMODE;
   }
 
   fstore.fst_offset = offset;
   fstore.fst_length = length;
 
-  if ( fcntl(fd, F_PREALLOCATE, &fstore) == -1 ) {
+  if (fcntl(fd, F_PREALLOCATE, &fstore) == -1) {
     *error = [NSError errorWithPOSIXCode:errno];
     return NO;
   }
@@ -277,11 +278,11 @@
 - (BOOL)exchangeDataOfItemAtPath:(NSString *)path1
                   withItemAtPath:(NSString *)path2
                            error:(NSError **)error {
-  NSString* p1 = [rootPath_ stringByAppendingString:path1];
-  NSString* p2 = [rootPath_ stringByAppendingString:path2];
+  NSString *p1 = [rootPath_ stringByAppendingString:path1];
+  NSString *p2 = [rootPath_ stringByAppendingString:path2];
   int ret = exchangedata([p1 UTF8String], [p2 UTF8String], 0);
-  if ( ret < 0 ) {
-    if ( error ) {
+  if (ret < 0) {
+    if (error) {
       *error = [NSError errorWithPOSIXCode:errno];
     }
     return NO;
@@ -294,53 +295,133 @@
 #pragma mark Directory Contents
 
 - (NSArray *)contentsOfDirectoryAtPath:(NSString *)path error:(NSError **)error {
-  NSString* p = [rootPath_ stringByAppendingString:path];
+  NSString *p = [rootPath_ stringByAppendingString:path];
   return [[NSFileManager defaultManager] contentsOfDirectoryAtPath:p error:error];
 }
 
 #pragma mark Getting and Setting Attributes
 
+#define DateFromTimespec(t) \
+  [NSDate dateWithTimeIntervalSince1970:((t).tv_sec + (t).tv_nsec / 1000000000.0)]
+
+#define TimespecFromDate(d) \
+  ({ \
+    NSTimeInterval _i = [(d) timeIntervalSince1970]; \
+    struct timespec _t; \
+    _t.tv_sec = (__darwin_time_t)_i; \
+    _t.tv_nsec = (long)((_i - _t.tv_sec) * 1000000000); \
+    _t; \
+  })
+
 - (NSDictionary *)attributesOfItemAtPath:(NSString *)path
                                 userData:(id)userData
                                    error:(NSError **)error {
-  NSString* p = [rootPath_ stringByAppendingString:path];
-  NSDictionary* attribs =
+  NSString *p = [rootPath_ stringByAppendingString:path];
+  NSDictionary *d =
     [[NSFileManager defaultManager] attributesOfItemAtPath:p error:error];
-  return attribs;
+  if (d) {
+    NSMutableDictionary *attribs =
+      [NSMutableDictionary dictionaryWithDictionary:d];
+    int ret = 0;
+
+    struct stat stbuf;
+    ret = lstat([p UTF8String], &stbuf);
+    if (ret < 0) {
+      if (error) {
+        *error = [NSError errorWithPOSIXCode:errno];
+      }
+      return nil;
+    }
+
+    struct attrlist attributes;
+
+    attributes.bitmapcount = ATTR_BIT_MAP_COUNT;
+    attributes.reserved = 0;
+    attributes.commonattr = ATTR_CMN_BKUPTIME;
+    attributes.dirattr = 0;
+    attributes.fileattr = 0;
+    attributes.forkattr = 0;
+    attributes.volattr = 0;
+
+    struct timeattrbuf {
+      uint32_t size;
+      struct timespec bkuptime;
+    } __attribute__ ((packed));
+
+    struct timeattrbuf timebuf;
+
+    ret = getattrlist([p UTF8String], &attributes, &timebuf, sizeof(timebuf),
+                      FSOPT_NOFOLLOW);
+    if (ret < 0) {
+      if (error) {
+        *error = [NSError errorWithPOSIXCode:errno];
+      }
+      return nil;
+    }
+
+    [attribs setObject:[NSNumber numberWithInt:stbuf.st_flags]
+                forKey:kGMUserFileSystemFileFlagsKey];
+    [attribs setObject:DateFromTimespec(stbuf.st_atimespec)
+                forKey:kGMUserFileSystemFileAccessDateKey];
+    [attribs setObject:DateFromTimespec(stbuf.st_ctimespec)
+                forKey:kGMUserFileSystemFileChangeDateKey];
+    [attribs setObject:DateFromTimespec(timebuf.bkuptime)
+                forKey:kGMUserFileSystemFileBackupDateKey];
+    [attribs setObject:[NSNumber numberWithLongLong:stbuf.st_blocks]
+                forKey:kGMUserFileSystemFileSizeInBlocksKey];
+    [attribs setObject:[NSNumber numberWithInt:stbuf.st_blksize]
+                forKey:kGMUserFileSystemFileOptimalIOSizeKey];
+    return attribs;
+  }
+  return nil;
 }
 
 - (NSDictionary *)attributesOfFileSystemForPath:(NSString *)path
                                           error:(NSError **)error {
-  NSString* p = [rootPath_ stringByAppendingString:path];
-  NSDictionary* d =
-    [[NSFileManager defaultManager] attributesOfFileSystemForPath:p error:error];
+  NSString *p = [rootPath_ stringByAppendingString:path];
+  NSDictionary *d =
+    [[NSFileManager defaultManager] attributesOfFileSystemForPath:p
+                                                            error:error];
   if (d) {
-    NSMutableDictionary* attribs = [NSMutableDictionary dictionaryWithDictionary:d];
-    [attribs setObject:[NSNumber numberWithBool:YES]
-                forKey:kGMUserFileSystemVolumeSupportsExtendedDatesKey];
+    NSMutableDictionary *attribs =
+      [NSMutableDictionary dictionaryWithDictionary:d];
+
+    struct statfs stbuf;
+    int ret = statfs([p UTF8String], &stbuf);
+    if (ret < 0) {
+      if (error) {
+        *error = [NSError errorWithPOSIXCode:errno];
+      }
+      return nil;
+    }
 
     NSURL *URL = [NSURL fileURLWithPath:p isDirectory:YES];
     NSNumber *supportsCaseSensitiveNames = nil;
-    [URL getResourceValue:&supportsCaseSensitiveNames
-                   forKey:NSURLVolumeSupportsCaseSensitiveNamesKey
-                        error:NULL];
-    if (supportsCaseSensitiveNames == nil) {
+    if (![URL getResourceValue:&supportsCaseSensitiveNames
+                        forKey:NSURLVolumeSupportsCaseSensitiveNamesKey
+                         error:error]) {
+      return nil;
+    }
+    if (!supportsCaseSensitiveNames) {
       supportsCaseSensitiveNames = [NSNumber numberWithBool:YES];
     }
+
+    [attribs setObject:[NSNumber numberWithBool:YES]
+                forKey:kGMUserFileSystemVolumeSupportsExtendedDatesKey];
+    [attribs setObject:[NSNumber numberWithInt:255]
+                forKey:kGMUserFileSystemVolumeMaxFilenameLengthKey];
+    [attribs setObject:[NSNumber numberWithUnsignedLong:stbuf.f_bsize]
+                forKey:kGMUserFileSystemVolumeFileSystemBlockSizeKey];
     [attribs setObject:supportsCaseSensitiveNames
                 forKey:kGMUserFileSystemVolumeSupportsCaseSensitiveNamesKey];
-
     [attribs setObject:[NSNumber numberWithBool:YES]
                 forKey:kGMUserFileSystemVolumeSupportsSwapRenamingKey];
     [attribs setObject:[NSNumber numberWithBool:YES]
                 forKey:kGMUserFileSystemVolumeSupportsExclusiveRenamingKey];
-
     [attribs setObject:[NSNumber numberWithBool:YES]
                 forKey:kGMUserFileSystemVolumeSupportsSetVolumeNameKey];
-
     [attribs setObject:[NSNumber numberWithBool:YES]
                 forKey:kGMUserFileSystemVolumeSupportsReadWriteNodeLockingKey];
-
     return attribs;
   }
   return nil;
@@ -350,30 +431,99 @@
          ofItemAtPath:(NSString *)path
              userData:(id)userData
                 error:(NSError **)error {
-  NSString* p = [rootPath_ stringByAppendingString:path];
+  NSString *p = [rootPath_ stringByAppendingString:path];
 
-  // TODO: Handle other keys not handled by NSFileManager setAttributes call.
-
-  NSNumber* offset = [attributes objectForKey:NSFileSize];
-  if ( offset ) {
+  NSNumber *offset = [attributes objectForKey:NSFileSize];
+  if (offset) {
     int ret = truncate([p UTF8String], [offset longLongValue]);
-    if ( ret < 0 ) {
-      if ( error ) {
+    if (ret < 0) {
+      if (error) {
         *error = [NSError errorWithPOSIXCode:errno];
       }
       return NO;
     }
   }
-  NSNumber* flags = [attributes objectForKey:kGMUserFileSystemFileFlagsKey];
+
+  NSDate *accessDate = attributes[kGMUserFileSystemFileAccessDateKey];
+  if (accessDate) {
+    struct attrlist attributes;
+
+    attributes.bitmapcount = ATTR_BIT_MAP_COUNT;
+    attributes.reserved = 0;
+    attributes.commonattr = ATTR_CMN_ACCTIME;
+    attributes.dirattr = 0;
+    attributes.fileattr = 0;
+    attributes.forkattr = 0;
+    attributes.volattr = 0;
+
+    struct timespec acctime = TimespecFromDate(accessDate);
+    int ret = setattrlist([p UTF8String], &attributes, &acctime,
+                          sizeof(struct timespec), FSOPT_NOFOLLOW);
+    if (ret < 0) {
+      if (error) {
+        *error = [NSError errorWithPOSIXCode:errno];
+      }
+      return NO;
+    }
+  }
+
+  NSDate *changeDate = attributes[kGMUserFileSystemFileChangeDateKey];
+  if (changeDate) {
+    struct attrlist attributes;
+
+    attributes.bitmapcount = ATTR_BIT_MAP_COUNT;
+    attributes.reserved = 0;
+    attributes.commonattr = ATTR_CMN_CHGTIME;
+    attributes.dirattr = 0;
+    attributes.fileattr = 0;
+    attributes.forkattr = 0;
+    attributes.volattr = 0;
+
+    struct timespec chgtime = TimespecFromDate(changeDate);
+    int ret = setattrlist([p UTF8String], &attributes, &chgtime,
+                          sizeof(struct timespec), FSOPT_NOFOLLOW);
+    if (ret < 0) {
+      if (error) {
+        *error = [NSError errorWithPOSIXCode:errno];
+      }
+      return NO;
+    }
+  }
+
+  NSDate *backupDate = attributes[kGMUserFileSystemFileBackupDateKey];
+  if (backupDate) {
+    struct attrlist attributes;
+
+    attributes.bitmapcount = ATTR_BIT_MAP_COUNT;
+    attributes.reserved = 0;
+    attributes.commonattr = ATTR_CMN_BKUPTIME;
+    attributes.dirattr = 0;
+    attributes.fileattr = 0;
+    attributes.forkattr = 0;
+    attributes.volattr = 0;
+
+    struct timespec bkuptime = TimespecFromDate(backupDate);
+    int ret = setattrlist([p UTF8String], &attributes, &bkuptime,
+                          sizeof(struct timespec), FSOPT_NOFOLLOW);
+    if (ret < 0) {
+      if (error) {
+        *error = [NSError errorWithPOSIXCode:errno];
+      }
+      return NO;
+    }
+  }
+
+  NSNumber *flags = [attributes objectForKey:kGMUserFileSystemFileFlagsKey];
   if (flags != nil) {
-    int rc = chflags([p UTF8String], [flags intValue]);
-    if (rc < 0) {
-      if ( error ) {
+    int ret = lchflags([p UTF8String], [flags intValue]);
+    if (ret < 0) {
+      if (error) {
         *error = [NSError errorWithPOSIXCode:errno];
       }
       return NO;
     }
   }
+
   return [[NSFileManager defaultManager] setAttributes:attributes
                                           ofItemAtPath:p
                                                  error:error];
@@ -387,29 +537,39 @@
 
 #pragma mark Extended Attributes
 
-- (NSArray *)extendedAttributesOfItemAtPath:(NSString *)path error:(NSError **)error {
-  NSString* p = [rootPath_ stringByAppendingString:path];
+#define G_PREFIX                       "org"
+#define G_KAUTH_FILESEC_XATTR G_PREFIX ".apple.system.Security"
+#define A_PREFIX                       "com"
+#define A_KAUTH_FILESEC_XATTR A_PREFIX ".apple.system.Security"
+#define XATTR_APPLE_PREFIX             "com.apple."
 
-  ssize_t size = listxattr([p UTF8String], nil, 0, XATTR_NOFOLLOW);
-  if ( size < 0 ) {
-    if ( error ) {
+- (NSArray *)extendedAttributesOfItemAtPath:(NSString *)path error:(NSError **)error {
+  NSString *p = [rootPath_ stringByAppendingString:path];
+
+  ssize_t size = listxattr([p UTF8String], NULL, 0, XATTR_NOFOLLOW);
+  if (size < 0) {
+    if (error) {
       *error = [NSError errorWithPOSIXCode:errno];
     }
     return nil;
   }
-  NSMutableData* data = [NSMutableData dataWithLength:size];
+
+  NSMutableData *data = [NSMutableData dataWithLength:size];
   size = listxattr([p UTF8String], [data mutableBytes], [data length], XATTR_NOFOLLOW);
-  if ( size < 0 ) {
-    if ( error ) {
+  if (size < 0) {
+    if (error) {
       *error = [NSError errorWithPOSIXCode:errno];
     }
     return nil;
   }
-  NSMutableArray* contents = [NSMutableArray array];
-  char* ptr = (char *)[data bytes];
-  while ( ptr < ((char *)[data bytes] + size) ) {
-    NSString* s = [NSString stringWithUTF8String:ptr];
-    [contents addObject:s];
+
+  NSMutableArray *contents = [NSMutableArray array];
+  char *ptr = (char *)[data bytes];
+  while (ptr < (((char *)[data bytes]) + size)) {
+    NSString *s = [NSString stringWithUTF8String:ptr];
+    if (strcmp(ptr, G_KAUTH_FILESEC_XATTR) != 0) {
+      [contents addObject:s];
+    }
     ptr += ([s length] + 1);
   }
   return contents;
@@ -419,25 +579,35 @@
                         ofItemAtPath:(NSString *)path
                             position:(off_t)position
                                error:(NSError **)error {
-  NSString* p = [rootPath_ stringByAppendingString:path];
+  NSString *p = [rootPath_ stringByAppendingString:path];
 
-  ssize_t size = getxattr([p UTF8String], [name UTF8String], nil, 0,
-                          (uint32_t)position, XATTR_NOFOLLOW);
-  if ( size < 0 ) {
-    if ( error ) {
+  const char *n = [name UTF8String];
+  if (strcmp(n, A_KAUTH_FILESEC_XATTR) == 0) {
+    char new_name[MAXPATHLEN];
+    memcpy(new_name, A_KAUTH_FILESEC_XATTR, sizeof(A_KAUTH_FILESEC_XATTR));
+    memcpy(new_name, G_PREFIX, sizeof(G_PREFIX) - 1);
+    n = new_name;
+  }
+
+  ssize_t size = getxattr([p UTF8String], n, NULL, 0, (uint32_t)position,
+                          XATTR_NOFOLLOW);
+  if (size < 0) {
+    if (error) {
       *error = [NSError errorWithPOSIXCode:errno];
     }
     return nil;
   }
-  NSMutableData* data = [NSMutableData dataWithLength:size];
-  size = getxattr([p UTF8String], [name UTF8String], [data mutableBytes],
-                  [data length], (uint32_t)position, XATTR_NOFOLLOW);
-  if ( size < 0 ) {
-    if ( error ) {
+
+  NSMutableData *data = [NSMutableData dataWithLength:size];
+  ssize_t ret = getxattr([p UTF8String], n, [data mutableBytes], [data length],
+                         (uint32_t)position, XATTR_NOFOLLOW);
+  if (ret == -1) {
+    if (error) {
       *error = [NSError errorWithPOSIXCode:errno];
     }
     return nil;
   }
+
   return data;
 }
 
@@ -451,31 +621,55 @@
   // bits are set in the options. We need to explicitly remove them or the call
   // to setxattr will fail.
   // TODO: Why is this necessary?
-  options &= ~(XATTR_NOSECURITY | XATTR_NODEFAULT);
-  NSString* p = [rootPath_ stringByAppendingString:path];
-  int ret = setxattr([p UTF8String], [name UTF8String], [value bytes],
-                     [value length], (uint32_t)position,
-                     options | XATTR_NOFOLLOW);
-  if ( ret < 0 ) {
-    if ( error ) {
+
+  NSString *p = [rootPath_ stringByAppendingString:path];
+
+  const char *n = [name UTF8String];
+  if (strcmp(n, A_KAUTH_FILESEC_XATTR) == 0) {
+    char new_name[MAXPATHLEN];
+    memcpy(new_name, A_KAUTH_FILESEC_XATTR, sizeof(A_KAUTH_FILESEC_XATTR));
+    memcpy(new_name, G_PREFIX, sizeof(G_PREFIX) - 1);
+    n = new_name;
+  }
+
+  options |= XATTR_NOFOLLOW;
+  if (!strncmp(n, XATTR_APPLE_PREFIX, sizeof(XATTR_APPLE_PREFIX) - 1)) {
+      options &= ~(XATTR_NOSECURITY);
+  }
+
+  int ret = setxattr([p UTF8String], n, [value bytes], [value length],
+                     (uint32_t)position, options);
+  if (ret == -1) {
+    if (error) {
       *error = [NSError errorWithPOSIXCode:errno];
     }
     return NO;
   }
+
   return YES;
 }
 
 - (BOOL)removeExtendedAttribute:(NSString *)name
                    ofItemAtPath:(NSString *)path
                           error:(NSError **)error {
-  NSString* p = [rootPath_ stringByAppendingString:path];
-  int ret = removexattr([p UTF8String], [name UTF8String], XATTR_NOFOLLOW);
-  if ( ret < 0 ) {
-    if ( error ) {
+  NSString *p = [rootPath_ stringByAppendingString:path];
+
+  const char *n = [name UTF8String];
+  if (strcmp(n, A_KAUTH_FILESEC_XATTR) == 0) {
+    char new_name[MAXPATHLEN];
+    memcpy(new_name, A_KAUTH_FILESEC_XATTR, sizeof(A_KAUTH_FILESEC_XATTR));
+    memcpy(new_name, G_PREFIX, sizeof(G_PREFIX) - 1);
+    n = new_name;
+  }
+
+  int res = removexattr([p UTF8String], n, XATTR_NOFOLLOW);
+  if (res == -1) {
+    if (error) {
       *error = [NSError errorWithPOSIXCode:errno];
     }
     return NO;
   }
+
   return YES;
 }
 

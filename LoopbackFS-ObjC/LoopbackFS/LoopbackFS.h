@@ -30,7 +30,7 @@
 #import <Cocoa/Cocoa.h>
 
 @interface LoopbackFS : NSObject  {
-  NSString* rootPath_;   // The local file-system path to mount.
+  NSString *rootPath_;   // The local file-system path to mount.
 }
 - (id)initWithRootPath:(NSString *)rootPath;
 
