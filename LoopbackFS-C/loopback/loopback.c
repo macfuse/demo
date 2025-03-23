@@ -1017,7 +1017,7 @@ static struct fuse_operations loopback_oper = {
 };
 
 static const struct fuse_opt loopback_opts[] = {
-    { "blocksize=%u", offsetof(struct loopback, blocksize), 0 },
+    { "fsblocksize=%u", offsetof(struct loopback, blocksize), 0 },
     { "case_insensitive", offsetof(struct loopback, case_insensitive), true },
     FUSE_OPT_END
 };
