@@ -43,7 +43,7 @@ static NSString *LoopbackMountPath = @"/Volumes/loop";
     [alert setMessageText:@"Mount Failed"];
     [alert setInformativeText:[error localizedDescription] ?: @"Unknown error"];
     [alert runModal];
-    
+  
     [[NSApplication sharedApplication] terminate:nil];
   });
 }

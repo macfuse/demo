@@ -294,9 +294,29 @@
 
 #pragma mark Directory Contents
 
-- (NSArray *)contentsOfDirectoryAtPath:(NSString *)path error:(NSError **)error {
+- (NSArray<GMDirectoryEntry *> *)contentsOfDirectoryAtPath:(NSString *)path
+                                includingAttributesForKeys:(NSArray<NSString *> *)keys
+                                                     error:(NSError * _Nullable *)error {
   NSString *p = [rootPath_ stringByAppendingString:path];
-  return [[NSFileManager defaultManager] contentsOfDirectoryAtPath:p error:error];
+  NSArray<NSString *> *contents =
+    [[NSFileManager defaultManager] contentsOfDirectoryAtPath:p error:error];
+  if (!contents) {
+    return nil;
+  }
+
+  NSMutableArray *entries = [NSMutableArray array];
+  for (NSString *n in contents) {
+    NSDictionary *d =
+      [[NSFileManager defaultManager] attributesOfItemAtPath:[p stringByAppendingPathComponent:n]
+                                                       error:nil];
+    if (!d) {
+      continue;
+    }
+
+    GMDirectoryEntry *entry = [GMDirectoryEntry directoryEntryWithName:n attributes:d];
+    [entries addObject:entry];
+  }
+  return entries;
 }
 
 #pragma mark Getting and Setting Attributes
