@@ -4,22 +4,21 @@
 //
 //  Created by Gunnar Herzog on 27/01/2017.
 //  Copyright © 2017 KF Interactive GmbH. All rights reserved.
-//  Copyright © 2019-2020 Benjamin Fleischer. All rights reserved.
+//  Copyright © 2019-2025 Benjamin Fleischer. All rights reserved.
 //
 
 import Foundation
 
-final class LoopbackFS: NSObject {
+public final class LoopbackFS: NSObject {
+    private let rootPath: String
 
-    let rootPath: String
-    
-    init(rootPath: String) {
+    public init(rootPath: String) {
         self.rootPath = rootPath
     }
 
     // MARK: - Moving an Item
 
-    override func moveItem(atPath source: String!, toPath destination: String!, options: GMUserFileSystemMoveOption) throws {
+    public override func moveItem(atPath source: String, toPath destination: String, options: GMUserFileSystemMoveOption) throws {
         let sourcePath = (rootPath.appending(source) as NSString).utf8String!
         let destinationPath = (rootPath.appending(destination) as NSString).utf8String!
 
@@ -47,7 +46,7 @@ final class LoopbackFS: NSObject {
 
     // MARK: - Removing an Item
 
-    override func removeDirectory(atPath path: String!) throws {
+    public override func removeDirectory(atPath path: String) throws {
         // We need to special-case directories here and use the bsd API since
         // NSFileManager will happily do a recursive remove :-(
 
@@ -59,7 +58,7 @@ final class LoopbackFS: NSObject {
         }
     }
 
-    override func removeItem(atPath path: String!) throws {
+    public override func removeItem(atPath path: String) throws {
         let originalPath = rootPath.appending(path)
 
         return try FileManager.default.removeItem(atPath: originalPath)
@@ -67,15 +66,13 @@ final class LoopbackFS: NSObject {
 
     // MARK: - Creating an Item
 
-    override func createDirectory(atPath path: String!, attributes: [AnyHashable : Any]! = [:]) throws {
-        guard let attributes = attributes as? [String: Any] else { throw NSError(posixErrorCode: EPERM) }
-
+    public override func createDirectory(atPath path: String, attributes: [FileAttributeKey : Any] = [:]) throws {
         let originalPath = rootPath.appending(path)
 
-        try FileManager.default.createDirectory(atPath: originalPath, withIntermediateDirectories: false, attributes: convertToOptionalFileAttributeKeyDictionary(attributes))
+        try FileManager.default.createDirectory(atPath: originalPath, withIntermediateDirectories: false, attributes: attributes)
     }
 
-    override func createFile(atPath path: String!, attributes: [AnyHashable : Any]! = [:], flags: Int32, userData: AutoreleasingUnsafeMutablePointer<AnyObject?>!) throws {
+    public override func createFile(atPath path: String, attributes: [FileAttributeKey : Any], flags: Int32, userData: AutoreleasingUnsafeMutablePointer<AnyObject?>) throws {
 
         guard let mode = attributes[FileAttributeKey.posixPermissions] as? mode_t else {
             throw NSError(posixErrorCode: EPERM)
@@ -94,7 +91,7 @@ final class LoopbackFS: NSObject {
 
     // MARK: - Linking an Item
 
-    override func linkItem(atPath path: String!, toPath otherPath: String!) throws {
+    public override func linkItem(atPath path: String, toPath otherPath: String) throws {
         let originalPath = (rootPath.appending(path) as NSString).utf8String!
         let originalOtherPath = (rootPath.appending(otherPath) as NSString).utf8String!
 
@@ -107,19 +104,19 @@ final class LoopbackFS: NSObject {
 
     // MARK: - Symbolic Links
 
-    override func createSymbolicLink(atPath path: String!, withDestinationPath otherPath: String!) throws {
+    public override func createSymbolicLink(atPath path: String, withDestinationPath otherPath: String) throws {
         let sourcePath = rootPath.appending(path)
         try FileManager.default.createSymbolicLink(atPath: sourcePath, withDestinationPath: otherPath)
     }
 
-    override func destinationOfSymbolicLink(atPath path: String!) throws -> String {
+    public override func destinationOfSymbolicLink(atPath path: String) throws -> String {
         let sourcePath = rootPath.appending(path)
         return try FileManager.default.destinationOfSymbolicLink(atPath: sourcePath)
     }
 
     // MARK: - File Contents
 
-    override func openFile(atPath path: String!, mode: Int32, userData: AutoreleasingUnsafeMutablePointer<AnyObject?>!) throws {
+    public override func openFile(atPath path: String, mode: Int32, userData: AutoreleasingUnsafeMutablePointer<AnyObject?>) throws {
         let originalPath = (rootPath.appending(path) as NSString).utf8String!
 
         let fileDescriptor = open(originalPath, mode)
@@ -131,7 +128,7 @@ final class LoopbackFS: NSObject {
         userData.pointee = NSNumber(value: fileDescriptor)
     }
 
-    override func releaseFile(atPath path: String!, userData: Any!) {
+    public override func releaseFile(atPath path: String, userData: Any!) {
         guard let num = userData as? NSNumber else {
             return
         }
@@ -140,7 +137,7 @@ final class LoopbackFS: NSObject {
         close(fileDescriptor)
     }
 
-    override func readFile(atPath path: String!, userData: Any!, buffer: UnsafeMutablePointer<Int8>!, size: Int, offset: off_t, error: NSErrorPointer) -> Int32 {
+    public override func readFile(atPath path: String, userData: Any?, buffer: UnsafeMutablePointer<Int8>, size: Int, offset: off_t, error: NSErrorPointer) -> Int32 {
         guard let num = userData as? NSNumber else {
             error?.pointee = NSError(posixErrorCode: EBADF)
             return -1
@@ -156,7 +153,7 @@ final class LoopbackFS: NSObject {
         return returnValue
     }
 
-    override func writeFile(atPath path: String!, userData: Any!, buffer: UnsafePointer<Int8>!, size: Int, offset: off_t, error: NSErrorPointer) -> Int32 {
+    public override func writeFile(atPath path: String, userData: Any?, buffer: UnsafePointer<Int8>, size: Int, offset: off_t, error: NSErrorPointer) -> Int32 {
         guard let num = userData as? NSNumber else {
             error?.pointee = NSError(posixErrorCode: EBADF)
             return -1
@@ -171,7 +168,7 @@ final class LoopbackFS: NSObject {
         return Int32(returnValue)
     }
 
-    override func preallocateFile(atPath path: String!, userData: Any!, options: Int32, offset: off_t, length: off_t) throws {
+    public override func preallocateFile(atPath path: String, userData: Any!, options: Int32, offset: off_t, length: off_t) throws {
         guard let num = userData as? NSNumber else {
             throw NSError(posixErrorCode: EBADF)
         }
@@ -197,7 +194,7 @@ final class LoopbackFS: NSObject {
         }
     }
 
-    public override func exchangeDataOfItem(atPath path1: String!, withItemAtPath path2: String!) throws {
+    public override func exchangeDataOfItem(atPath path1: String, withItemAtPath path2: String) throws {
         let sourcePath = (rootPath.appending(path1) as NSString).utf8String!
         let destinationPath = (rootPath.appending(path2) as NSString).utf8String!
 
@@ -209,19 +206,30 @@ final class LoopbackFS: NSObject {
 
     // MARK: - Directory Contents
 
-    override func contentsOfDirectory(atPath path: String!) throws -> [Any] {
+    public override func contentsOfDirectory(atPath path: String, includingAttributesForKeys keys: [FileAttributeKey]) throws -> [GMDirectoryEntry] {
         let originalPath = rootPath.appending(path)
-        return try FileManager.default.contentsOfDirectory(atPath: originalPath)
+        let contents = try FileManager.default.contentsOfDirectory(atPath: originalPath)
+
+        var entries = [GMDirectoryEntry]()
+        for name in contents {
+            do {
+                let attributes = try FileManager.default.attributesOfItem(atPath: originalPath.appending("/\(name)"))
+                entries.append(GMDirectoryEntry(name: name, attributes: attributes))
+            } catch {
+                // Skip entry
+            }
+        }
+        return entries
     }
 
     // MARK: - Getting and Setting Attributes
 
-    override func attributesOfItem(atPath path: String!, userData: Any!) throws -> [AnyHashable : Any] {
+    public override func attributesOfItem(atPath path: String, userData: Any?) throws -> [FileAttributeKey : Any] {
         let originalPath = rootPath.appending(path)
         return try FileManager.default.attributesOfItem(atPath: originalPath)
     }
 
-    override func attributesOfFileSystem(forPath path: String!) throws -> [AnyHashable : Any] {
+    public override func attributesOfFileSystem(forPath path: String) throws -> [FileAttributeKey : Any] {
         let originalPath = rootPath.appending(path)
 
         var attributes = try FileManager.default.attributesOfFileSystem(forPath: originalPath)
@@ -242,20 +250,18 @@ final class LoopbackFS: NSObject {
         return attributes
     }
 
-    override func setAttributes(_ attributes: [AnyHashable : Any]!, ofItemAtPath path: String!, userData: Any!) throws {
-        guard let attribs = attributes as? [FileAttributeKey: Any] else { throw NSError(posixErrorCode: EINVAL) }
-
+    public override func setAttributes(_ attributes: [FileAttributeKey : Any], ofItemAtPath path: String, userData: Any?) throws {
         let originalPath = rootPath.appending(path)
 
         if let pathPointer = (originalPath as NSString).utf8String {
-            if let offset = attributes[FileAttributeKey.size.rawValue] as? Int64 {
+            if let offset = attributes[FileAttributeKey.size] as? Int64 {
                 let ret = truncate(pathPointer, offset)
                 if ret < 0 {
                     throw NSError(posixErrorCode: errno)
                 }
             }
 
-            if let flags = attributes[kGMUserFileSystemFileFlagsKey] as? Int32 {
+            if let flags = attributes[FileAttributeKey(rawValue: kGMUserFileSystemFileFlagsKey)] as? Int32 {
                 let rc = chflags(pathPointer, UInt32(flags))
                 if rc < 0 {
                     throw NSError(posixErrorCode: errno)
@@ -263,20 +269,16 @@ final class LoopbackFS: NSObject {
             }
         }
 
-        try FileManager.default.setAttributes(attribs, ofItemAtPath: originalPath)
+        try FileManager.default.setAttributes(attributes, ofItemAtPath: originalPath)
     }
 
-    override func setAttributes(_ attributes: [AnyHashable : Any]!, ofFileSystemAtPath path: String!) throws {
+    public override func setAttributes(_ attributes: [FileAttributeKey : Any], ofFileSystemAtPath path: String) throws {
         // Needed for kGMUserFileSystemVolumeSupportsSetVolumeNameKey
     }
-    
+
     // MARK: - Extended Attributes
 
-    public override func extendedAttributesOfItem(atPath path: Any!) throws -> [Any] {
-        guard let path = path as? String  else {
-            throw NSError(posixErrorCode: ENODEV)
-        }
-
+    public override func extendedAttributesOfItem(atPath path: String) throws -> [String] {
         let originalUrl = URL(fileURLWithPath: rootPath.appending(path))
 
         return try originalUrl.withUnsafeFileSystemRepresentation { fileSystemPath -> [String] in
@@ -301,7 +303,7 @@ final class LoopbackFS: NSObject {
         }
     }
 
-    public override func value(ofExtendedAttribute name: String!, ofItemAtPath path: String!, position: off_t) throws -> Data {
+    public override func value(ofExtendedAttribute name: String, ofItemAtPath path: String, position: off_t) throws -> Data {
         let originalUrl = URL(fileURLWithPath: rootPath.appending(path))
 
         return try originalUrl.withUnsafeFileSystemRepresentation { fileSystemPath -> Data in
@@ -327,7 +329,7 @@ final class LoopbackFS: NSObject {
         }
     }
 
-    public override func setExtendedAttribute(_ name: String!, ofItemAtPath path: String!, value: Data!, position: off_t, options: Int32) throws {
+    public override func setExtendedAttribute(_ name: String, ofItemAtPath path: String, value: Data, position: off_t, options: Int32) throws {
         let originalUrl = URL(fileURLWithPath: rootPath.appending(path))
 
         try originalUrl.withUnsafeFileSystemRepresentation { fileSystemPath in
@@ -344,7 +346,7 @@ final class LoopbackFS: NSObject {
         }
     }
 
-    public override func removeExtendedAttribute(_ name: String!, ofItemAtPath path: String!) throws {
+    public override func removeExtendedAttribute(_ name: String, ofItemAtPath path: String) throws {
         let originalUrl = URL(fileURLWithPath: rootPath.appending(path))
 
         try originalUrl.withUnsafeFileSystemRepresentation { fileSystemPath in
@@ -352,10 +354,4 @@ final class LoopbackFS: NSObject {
             guard result >= 0 else { throw NSError(posixErrorCode: errno) }
         }
     }
-}
-
-// Helper function inserted by Swift 4.2 migrator.
-fileprivate func convertToOptionalFileAttributeKeyDictionary(_ input: [String: Any]?) -> [FileAttributeKey: Any]? {
-	guard let input = input else { return nil }
-	return Dictionary(uniqueKeysWithValues: input.map { key, value in (FileAttributeKey(rawValue: key), value)})
 }

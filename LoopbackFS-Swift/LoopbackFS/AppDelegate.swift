@@ -4,16 +4,15 @@
 //
 //  Created by Gunnar Herzog on 27/01/2017.
 //  Copyright © 2017 KF Interactive GmbH. All rights reserved.
-//  Copyright © 2019-2023 Benjamin Fleischer. All rights reserved.
+//  Copyright © 2019-2025 Benjamin Fleischer. All rights reserved.
 //
 
 import Cocoa
 
 let loopbackMountPath = "/Volumes/loop"
 
-@NSApplicationMain
+@main
 class AppDelegate: NSObject, NSApplicationDelegate {
-
     @IBOutlet weak var window: NSWindow!
 
     private var notificationObservers: [NSObjectProtocol] = []
@@ -24,7 +23,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var userFileSystem: GMUserFileSystem?
 
-    func applicationDidFinishLaunching(_ aNotification: Notification) {        
+    func applicationDidFinishLaunching(_ aNotification: Notification) {
         let panel = NSOpenPanel()
         panel.canChooseFiles = false
         panel.canChooseDirectories = true
@@ -45,10 +44,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         userFileSystem = GMUserFileSystem(delegate: self.loopFileSystem, isThreadSafe: false)
-        
+
         // Do not use the 'native_xattr' mount-time option unless the underlying
         // file system supports native extended attributes. Typically, the user
-        // would be mounting an HFS+ directory through LoopbackFS, so we do want
+        // would be mounting an APFS directory through LoopbackFS, so we do want
         // this option in that case.
         userFileSystem!.mount(atPath: loopbackMountPath, withOptions: options)
     }
