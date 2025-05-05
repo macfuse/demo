@@ -297,7 +297,14 @@ public final class LoopbackFS: NSObject {
 
             // Extract attribute names:
             let list = data.split(separator: 0).compactMap {
-                String(data: Data($0), encoding: .utf8)
+                guard var name = String(data: Data($0), encoding: .utf8) else {
+                    return nil as String?
+                }
+                if name.hasPrefix("com.apple.") {
+                    name = "org.apple." + name[name.index(name.startIndex, offsetBy: 10)...]
+                }
+
+                return name
             }
             return list
         }
@@ -307,6 +314,10 @@ public final class LoopbackFS: NSObject {
         let originalUrl = URL(fileURLWithPath: rootPath.appending(path))
 
         return try originalUrl.withUnsafeFileSystemRepresentation { fileSystemPath -> Data in
+            var name = name
+            if name.hasPrefix("com.apple.") {
+                name = "org.apple." + name[name.index(name.startIndex, offsetBy: 10)...]
+            }
 
             // Determine attribute size:
             let length = getxattr(fileSystemPath, name, nil, 0, UInt32(position), XATTR_NOFOLLOW)
@@ -339,6 +350,11 @@ public final class LoopbackFS: NSObject {
             // TODO: Why is this necessary?
             let newOptions = options & ~(XATTR_NOSECURITY | XATTR_NODEFAULT)
 
+            var name = name
+            if name.hasPrefix("com.apple.") {
+                name = "org.apple." + name[name.index(name.startIndex, offsetBy: 10)...]
+            }
+
             let result = value.withUnsafeBytes {
                 setxattr(fileSystemPath, name, $0.baseAddress?.assumingMemoryBound(to: Int8.self), value.count, UInt32(position), newOptions | XATTR_NOFOLLOW)
             }
@@ -350,6 +366,11 @@ public final class LoopbackFS: NSObject {
         let originalUrl = URL(fileURLWithPath: rootPath.appending(path))
 
         try originalUrl.withUnsafeFileSystemRepresentation { fileSystemPath in
+            var name = name
+            if name.hasPrefix("com.apple.") {
+                name = "org.apple." + name[name.index(name.startIndex, offsetBy: 10)...]
+            }
+
             let result = removexattr(fileSystemPath, name, XATTR_NOFOLLOW)
             guard result >= 0 else { throw NSError(posixErrorCode: errno) }
         }

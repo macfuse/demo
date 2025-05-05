@@ -557,12 +557,6 @@
 
 #pragma mark Extended Attributes
 
-#define G_PREFIX              "org"
-#define G_KAUTH_FILESEC_XATTR G_PREFIX ".apple.system.Security"
-#define A_PREFIX              "com"
-#define A_KAUTH_FILESEC_XATTR A_PREFIX ".apple.system.Security"
-#define XATTR_APPLE_PREFIX    "com.apple."
-
 - (NSArray *)extendedAttributesOfItemAtPath:(NSString *)path error:(NSError **)error {
   NSString *p = [rootPath_ stringByAppendingString:path];
 
@@ -587,9 +581,10 @@
   char *ptr = (char *)[data bytes];
   while (ptr < (((char *)[data bytes]) + size)) {
     NSString *s = [NSString stringWithUTF8String:ptr];
-    if (strcmp(ptr, G_KAUTH_FILESEC_XATTR) != 0) {
-      [contents addObject:s];
+    if ([s hasPrefix:@"com.apple."]) {
+      s = [@"org.apple." stringByAppendingString: [s substringFromIndex:10]];
     }
+    [contents addObject:s];
     ptr += ([s length] + 1);
   }
   return contents;
@@ -601,14 +596,11 @@
                                error:(NSError **)error {
   NSString *p = [rootPath_ stringByAppendingString:path];
 
-  const char *n = [name UTF8String];
-  if (strcmp(n, A_KAUTH_FILESEC_XATTR) == 0) {
-    char new_name[MAXPATHLEN];
-    memcpy(new_name, A_KAUTH_FILESEC_XATTR, sizeof(A_KAUTH_FILESEC_XATTR));
-    memcpy(new_name, G_PREFIX, sizeof(G_PREFIX) - 1);
-    n = new_name;
+  if ([name hasPrefix:@"com.apple."]) {
+    name = [@"org.apple." stringByAppendingString: [name substringFromIndex:10]];
   }
 
+  const char *n = [name UTF8String];
   ssize_t size = getxattr([p UTF8String], n, NULL, 0, (uint32_t)position,
                           XATTR_NOFOLLOW);
   if (size < 0) {
@@ -644,19 +636,12 @@
 
   NSString *p = [rootPath_ stringByAppendingString:path];
 
+  if ([name hasPrefix:@"com.apple."]) {
+    name = [@"org.apple." stringByAppendingString: [name substringFromIndex:10]];
+  }
+
   const char *n = [name UTF8String];
-  if (strcmp(n, A_KAUTH_FILESEC_XATTR) == 0) {
-    char new_name[MAXPATHLEN];
-    memcpy(new_name, A_KAUTH_FILESEC_XATTR, sizeof(A_KAUTH_FILESEC_XATTR));
-    memcpy(new_name, G_PREFIX, sizeof(G_PREFIX) - 1);
-    n = new_name;
-  }
-
   options |= XATTR_NOFOLLOW;
-  if (!strncmp(n, XATTR_APPLE_PREFIX, sizeof(XATTR_APPLE_PREFIX) - 1)) {
-      options &= ~(XATTR_NOSECURITY);
-  }
-
   int ret = setxattr([p UTF8String], n, [value bytes], [value length],
                      (uint32_t)position, options);
   if (ret == -1) {
@@ -674,14 +659,11 @@
                           error:(NSError **)error {
   NSString *p = [rootPath_ stringByAppendingString:path];
 
-  const char *n = [name UTF8String];
-  if (strcmp(n, A_KAUTH_FILESEC_XATTR) == 0) {
-    char new_name[MAXPATHLEN];
-    memcpy(new_name, A_KAUTH_FILESEC_XATTR, sizeof(A_KAUTH_FILESEC_XATTR));
-    memcpy(new_name, G_PREFIX, sizeof(G_PREFIX) - 1);
-    n = new_name;
+  if ([name hasPrefix:@"com.apple."]) {
+    name = [@"org.apple." stringByAppendingString: [name substringFromIndex:10]];
   }
 
+  const char *n = [name UTF8String];
   int res = removexattr([p UTF8String], n, XATTR_NOFOLLOW);
   if (res == -1) {
     if (error) {

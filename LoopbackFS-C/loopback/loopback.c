@@ -47,12 +47,6 @@ typedef unsigned int   u_int;
 typedef unsigned long  u_long;
 #endif
 
-#define G_PREFIX              "org"
-#define G_KAUTH_FILESEC_XATTR G_PREFIX ".apple.system.Security"
-#define A_PREFIX              "com"
-#define A_KAUTH_FILESEC_XATTR A_PREFIX ".apple.system.Security"
-#define XATTR_APPLE_PREFIX    "com.apple."
-
 struct loopback {
     uint32_t blocksize;
     bool case_insensitive;
@@ -759,19 +753,11 @@ loopback_setxattr(const char *path, const char *name, const char *value,
     int res;
 
     flags |= XATTR_NOFOLLOW;
-    if (!strncmp(name, XATTR_APPLE_PREFIX, sizeof(XATTR_APPLE_PREFIX) - 1)) {
-        flags &= ~(XATTR_NOSECURITY);
-    }
-
-    if (!strcmp(name, A_KAUTH_FILESEC_XATTR)) {
-
-        char new_name[MAXPATHLEN];
-
-        memcpy(new_name, A_KAUTH_FILESEC_XATTR, sizeof(A_KAUTH_FILESEC_XATTR));
-        memcpy(new_name, G_PREFIX, sizeof(G_PREFIX) - 1);
+    if (strncmp(name, "com.apple.", 10) == 0) {
+        char new_name[MAXPATHLEN] = "org.apple.";
+        strncpy(new_name + 10, name + 10, sizeof(new_name) - 10);
 
         res = setxattr(path, new_name, value, size, position, flags);
-
     } else {
         res = setxattr(path, name, value, size, position, flags);
     }
@@ -789,15 +775,11 @@ loopback_getxattr(const char *path, const char *name, char *value, size_t size,
 {
     int res;
 
-    if (strcmp(name, A_KAUTH_FILESEC_XATTR) == 0) {
-
-        char new_name[MAXPATHLEN];
-
-        memcpy(new_name, A_KAUTH_FILESEC_XATTR, sizeof(A_KAUTH_FILESEC_XATTR));
-        memcpy(new_name, G_PREFIX, sizeof(G_PREFIX) - 1);
+    if (strncmp(name, "com.apple.", 10) == 0) {
+        char new_name[MAXPATHLEN] = "org.apple.";
+        strncpy(new_name + 10, name + 10, sizeof(new_name) - 10);
 
         res = getxattr(path, new_name, value, size, position, XATTR_NOFOLLOW);
-
     } else {
         res = getxattr(path, name, value, size, position, XATTR_NOFOLLOW);
     }
@@ -819,10 +801,10 @@ loopback_listxattr(const char *path, char *list, size_t size)
             char *curr = list;
             do {
                 size_t thislen = strlen(curr) + 1;
-                if (strcmp(curr, G_KAUTH_FILESEC_XATTR) == 0) {
-                    memmove(curr, curr + thislen, res - len - thislen);
-                    res -= thislen;
-                    break;
+                if (strncmp(curr, "com.apple.", 10) == 0) {
+                    curr[0] = 'o';
+                    curr[1] = 'r';
+                    curr[2] = 'g';
                 }
                 curr += thislen;
                 len += thislen;
@@ -850,15 +832,11 @@ loopback_removexattr(const char *path, const char *name)
 {
     int res;
 
-    if (strcmp(name, A_KAUTH_FILESEC_XATTR) == 0) {
-
-        char new_name[MAXPATHLEN];
-
-        memcpy(new_name, A_KAUTH_FILESEC_XATTR, sizeof(A_KAUTH_FILESEC_XATTR));
-        memcpy(new_name, G_PREFIX, sizeof(G_PREFIX) - 1);
+    if (strncmp(name, "com.apple.", 10) == 0) {
+        char new_name[MAXPATHLEN] = "org.apple.";
+        strncpy(new_name + 10, name + 10, sizeof(new_name) - 10);
 
         res = removexattr(path, new_name, XATTR_NOFOLLOW);
-
     } else {
         res = removexattr(path, name, XATTR_NOFOLLOW);
     }
