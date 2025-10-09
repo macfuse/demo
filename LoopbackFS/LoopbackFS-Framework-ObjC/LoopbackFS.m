@@ -24,7 +24,6 @@
 #import "LoopbackFS.h"
 
 @import Darwin;
-@import macFUSE;
 
 #import "NSError+POSIX.h"
 

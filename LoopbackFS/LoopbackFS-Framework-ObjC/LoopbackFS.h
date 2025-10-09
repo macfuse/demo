@@ -6,10 +6,11 @@
 //
 
 @import Foundation;
+@import macFUSE;
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface LoopbackFS : NSObject
+@interface LoopbackFS : NSObject <GMUserFileSystemOperations>
 
 - (instancetype)initWithRootPath:(NSString *)rootPath;
 

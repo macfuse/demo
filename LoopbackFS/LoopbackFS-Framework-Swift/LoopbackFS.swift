@@ -12,7 +12,7 @@ import System
 
 import macFUSE
 
-public final class LoopbackFS: NSObject {
+public final class LoopbackFS: NSObject, UserFileSystem.Operations {
     private let rootPath: FilePath
     
     public init(rootPath: FilePath) {
@@ -43,7 +43,7 @@ public final class LoopbackFS: NSObject {
 
     // MARK: - Moving an Item
 
-    public override func moveItem(
+    public func moveItem(
         atPath path: String,
         toPath otherPath: String,
         options: UserFileSystem.MoveOptions
@@ -68,7 +68,7 @@ public final class LoopbackFS: NSObject {
 
     // MARK: - Removing an Item
 
-    public override func removeDirectory(atPath path: String) throws {
+    public func removeDirectory(atPath path: String) throws {
         let resolvedPath = rootPath.appending(path)
         
         /*
@@ -83,14 +83,14 @@ public final class LoopbackFS: NSObject {
         }
     }
 
-    public override func removeItem(atPath path: String) throws {
+    public func removeItem(atPath path: String) throws {
         let resolvedPath = rootPath.appending(path)
         return try FileManager.default.removeItem(atPath: resolvedPath.string)
     }
 
     // MARK: - Creating an Item
 
-    public override func createDirectory(
+    public func createDirectory(
         atPath path: String,
         attributes: [FileAttributeKey: Any] = [:]
     ) throws {
@@ -103,7 +103,7 @@ public final class LoopbackFS: NSObject {
         )
     }
 
-    public override func createFile(
+    public func createFile(
         atPath path: String,
         attributes: [FileAttributeKey: Any],
         flags: Int32,
@@ -127,7 +127,7 @@ public final class LoopbackFS: NSObject {
 
     // MARK: - Linking an Item
 
-    public override func linkItem(atPath path: String, toPath otherPath: String) throws {
+    public func linkItem(atPath path: String, toPath otherPath: String) throws {
         let resolvedPath = rootPath.appending(path)
         let resolvedOtherPath = rootPath.appending(otherPath)
 
@@ -145,7 +145,7 @@ public final class LoopbackFS: NSObject {
 
     // MARK: - Symbolic Links
 
-    public override func createSymbolicLink(
+    public func createSymbolicLink(
         atPath path: String,
         withDestinationPath otherPath: String
     ) throws {
@@ -156,14 +156,14 @@ public final class LoopbackFS: NSObject {
         )
     }
 
-    public override func destinationOfSymbolicLink(atPath path: String) throws -> String {
+    public func destinationOfSymbolicLink(atPath path: String) throws -> String {
         let resolvedPath = rootPath.appending(path)
         return try FileManager.default.destinationOfSymbolicLink(atPath: resolvedPath.string)
     }
 
     // MARK: - File Contents
 
-    public override func openFile(
+    public func openFile(
         atPath path: String,
         mode: Int32,
         userData: AutoreleasingUnsafeMutablePointer<AnyObject?>
@@ -180,7 +180,7 @@ public final class LoopbackFS: NSObject {
         }
     }
 
-    public override func releaseFile(atPath path: String, userData: Any!) {
+    public func releaseFile(atPath path: String, userData: Any?) {
         guard let fileHandle = userData as? FileHandle else {
             return
         }
@@ -188,7 +188,7 @@ public final class LoopbackFS: NSObject {
         try? fileHandle.close()
     }
 
-    public override func readFile(
+    public func readFile(
         atPath path: String,
         userData: Any?,
         buffer: UnsafeMutablePointer<Int8>,
@@ -210,7 +210,7 @@ public final class LoopbackFS: NSObject {
         return Int32(byteCount)
     }
 
-    public override func writeFile(
+    public func writeFile(
         atPath path: String,
         userData: Any?,
         buffer: UnsafePointer<Int8>,
@@ -232,9 +232,9 @@ public final class LoopbackFS: NSObject {
         return Int32(byteCount)
     }
 
-    public override func preallocateFile(
+    public func preallocateFile(
         atPath path: String,
-        userData: Any!,
+        userData: Any?,
         options: Int32,
         offset: off_t,
         length: off_t
@@ -265,7 +265,7 @@ public final class LoopbackFS: NSObject {
 
     // MARK: - Directory Contents
 
-    public override func contentsOfDirectory(
+    public func contentsOfDirectory(
         atPath path: String,
         includingAttributesForKeys keys: [FileAttributeKey]
     ) throws -> [DirectoryEntry] {
@@ -286,7 +286,7 @@ public final class LoopbackFS: NSObject {
 
     // MARK: - Getting and Setting Attributes
 
-    public override func attributesOfItem(
+    public func attributesOfItem(
         atPath path: String,
         userData: Any?
     ) throws -> [FileAttributeKey: Any] {
@@ -294,7 +294,7 @@ public final class LoopbackFS: NSObject {
         return try FileManager.default.attributesOfItem(atPath: resolvedPath.string)
     }
 
-    public override func attributesOfFileSystem(
+    public func attributesOfFileSystem(
         forPath path: String
     ) throws -> [FileAttributeKey: Any] {
         let resolvedPath = rootPath.appending(path)
@@ -315,7 +315,7 @@ public final class LoopbackFS: NSObject {
         return attributes
     }
 
-    public override func setAttributes(
+    public func setAttributes(
         _ attributes: [FileAttributeKey: Any],
         ofItemAtPath path: String,
         userData: Any?
@@ -339,7 +339,7 @@ public final class LoopbackFS: NSObject {
         try FileManager.default.setAttributes(attributes, ofItemAtPath: resolvedPath.string)
     }
 
-    public override func setAttributes(
+    public func setAttributes(
         _ attributes: [FileAttributeKey: Any],
         ofFileSystemAtPath path: String
     ) throws {
@@ -348,7 +348,7 @@ public final class LoopbackFS: NSObject {
 
     // MARK: - Extended Attributes
 
-    public override func extendedAttributesOfItem(atPath path: String) throws -> [String] {
+    public func extendedAttributesOfItem(atPath path: String) throws -> [String] {
         let resolvedPath = rootPath.appending(path)
         
         return try withPlatformPath(resolvedPath) { platformPath in
@@ -384,7 +384,7 @@ public final class LoopbackFS: NSObject {
         }
     }
 
-    public override func value(
+    public func value(
         ofExtendedAttribute name: String,
         ofItemAtPath path: String,
         position: off_t
@@ -419,7 +419,7 @@ public final class LoopbackFS: NSObject {
         }
     }
 
-    public override func setExtendedAttribute(
+    public func setExtendedAttribute(
         _ name: String,
         ofItemAtPath path: String,
         value: Data,
@@ -456,7 +456,7 @@ public final class LoopbackFS: NSObject {
         }
     }
 
-    public override func removeExtendedAttribute(_ name: String, ofItemAtPath path: String) throws {
+    public func removeExtendedAttribute(_ name: String, ofItemAtPath path: String) throws {
         let resolvedPath = rootPath.appending(path)
 
         var name = name
