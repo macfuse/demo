@@ -188,7 +188,6 @@ loopback_init(struct fuse_conn_info *conn, struct fuse_config *cfg)
     }
 #endif
 
-    cfg->use_ino = 1;
     cfg->nullpath_ok = 1;
 
     return NULL;
