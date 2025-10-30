@@ -880,11 +880,9 @@ static struct fuse_operations loopback_oper = {
     .init        = loopback_init,
     .getattr     = loopback_getattr,
     .setattr     = loopback_setattr,
-
 #if HAVE_ACCESS
     .access      = loopback_access,
 #endif
-
     .readlink    = loopback_readlink,
     .opendir     = loopback_opendir,
     .readdir     = loopback_readdir,
