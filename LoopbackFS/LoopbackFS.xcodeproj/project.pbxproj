@@ -449,7 +449,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "LoopbackFS-libfuse3-C/LoopbackFS.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 3T5GSNBU6W;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				HEADER_SEARCH_PATHS = /usr/local/include;
@@ -463,7 +463,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "LoopbackFS-libfuse3-C/LoopbackFS.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 3T5GSNBU6W;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				HEADER_SEARCH_PATHS = /usr/local/include;
