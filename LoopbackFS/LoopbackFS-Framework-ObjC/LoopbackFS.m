@@ -606,7 +606,10 @@ NS_ASSUME_NONNULL_BEGIN
     }
 
     const char *n = name.UTF8String;
+
     options |= XATTR_NOFOLLOW;
+    options &= ~XATTR_NOSECURITY;
+
     int ret = setxattr(resolvedPath.fileSystemRepresentation, n, value.bytes, value.length,
                        (uint32_t)position, options);
     if (ret == -1) {

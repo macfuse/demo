@@ -790,6 +790,7 @@ loopback_setxattr(const char *path, const char *name, const char *value,
     int res;
 
     flags |= XATTR_NOFOLLOW;
+    flags &= ~XATTR_NOSECURITY;
 
     if (strncmp(name, "com.apple.", 10) == 0) {
         char new_name[MAXPATHLEN] = "org.apple.";
