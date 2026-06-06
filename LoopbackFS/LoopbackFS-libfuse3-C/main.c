@@ -788,12 +788,12 @@ loopback_setxattr(const char *path, const char *name, const char *value,
                   size_t size, int flags, uint32_t position)
 {
     int res;
+    char new_name[MAXPATHLEN] = "org.apple.";
 
     flags |= XATTR_NOFOLLOW;
     flags &= ~XATTR_NOSECURITY;
 
     if (strncmp(name, "com.apple.", 10) == 0) {
-        char new_name[MAXPATHLEN] = "org.apple.";
         strncpy(new_name + 10, name + 10, sizeof(new_name) - 10);
         name = new_name;
     }
@@ -811,9 +811,9 @@ loopback_getxattr(const char *path, const char *name, char *value, size_t size,
                   uint32_t position)
 {
     int res;
+    char new_name[MAXPATHLEN] = "org.apple.";
 
     if (strncmp(name, "com.apple.", 10) == 0) {
-        char new_name[MAXPATHLEN] = "org.apple.";
         strncpy(new_name + 10, name + 10, sizeof(new_name) - 10);
         name = new_name;
     }
@@ -822,7 +822,6 @@ loopback_getxattr(const char *path, const char *name, char *value, size_t size,
     if (res == -1) {
         return -errno;
     }
-
     return res;
 }
 
@@ -856,9 +855,9 @@ static int
 loopback_removexattr(const char *path, const char *name)
 {
     int res;
+    char new_name[MAXPATHLEN] = "org.apple.";
 
     if (strncmp(name, "com.apple.", 10) == 0) {
-        char new_name[MAXPATHLEN] = "org.apple.";
         strncpy(new_name + 10, name + 10, sizeof(new_name) - 10);
         name = new_name;
     }
